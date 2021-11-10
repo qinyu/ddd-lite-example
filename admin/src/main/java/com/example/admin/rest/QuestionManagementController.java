@@ -6,7 +6,6 @@ import com.example.admin.usecases.question.UpdateQuestionStatusCase;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.group.GroupContextHolder;
 import com.example.domain.user.model.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,15 +22,20 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/management/questions")
 public class QuestionManagementController {
-    @Autowired
-    private QuestionManagementApplicationService applicationService;
-    @Autowired
-    private AuthorizeService authorizeService;
+
+    private final QuestionManagementApplicationService questionManagementApplicationService;
+    private final AuthorizeService authorizeService;
+
+    public QuestionManagementController(QuestionManagementApplicationService questionManagementApplicationService,
+                                        AuthorizeService authorizeService) {
+        this.questionManagementApplicationService = questionManagementApplicationService;
+        this.authorizeService = authorizeService;
+    }
 
     @GetMapping
     public Page<GetQuestionsCase.Response> getQuestions(@RequestParam(required = false) String keyword,
                                                         Pageable pageable) {
-        return applicationService.getQuestions(keyword, pageable);
+        return questionManagementApplicationService.getQuestions(keyword, pageable);
     }
 
     @PutMapping("/{id}/status")
@@ -40,13 +44,13 @@ public class QuestionManagementController {
                                                                   @Valid UpdateQuestionStatusCase.Request request) {
         Operator operator = authorizeService.getOperator();
         String groupId = GroupContextHolder.getContext();
-        return applicationService.updateStatus(id, request, groupId, operator);
+        return questionManagementApplicationService.updateStatus(id, request, groupId, operator);
     }
 
     @DeleteMapping("/{id}")
     public void deleteQuestion(@PathVariable String id) {
         Operator operator = authorizeService.getOperator();
         String groupId = GroupContextHolder.getContext();
-        applicationService.delete(id, groupId, operator);
+        questionManagementApplicationService.delete(id, groupId, operator);
     }
 }

@@ -7,17 +7,20 @@ import com.example.domain.auth.repository.AuthorizeRepository;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class AuthorizeService {
-    @Autowired
-    private AuthorizeRepository repository;
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final AuthorizeRepository authorizeRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public AuthorizeService(AuthorizeRepository authorizeRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.authorizeRepository = authorizeRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     public Authorize create(User user, String password) {
         if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
@@ -32,7 +35,7 @@ public class AuthorizeService {
                 .userId(user.getId())
                 .role(user.getRole())
                 .build();
-        return repository.create(authorize);
+        return authorizeRepository.create(authorize);
     }
 
     public Authorize getCurrent() {
@@ -49,6 +52,6 @@ public class AuthorizeService {
     }
 
     public void delete(String id) {
-        repository.delete(id);
+        authorizeRepository.delete(id);
     }
 }

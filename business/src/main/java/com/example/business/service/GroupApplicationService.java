@@ -33,10 +33,14 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 public class GroupApplicationService {
-    @Autowired
-    private GroupService groupService;
-    @Autowired
-    private UserService userService;
+
+    private final GroupService groupService;
+    private final UserService userService;
+
+    public GroupApplicationService(GroupService groupService, UserService userService) {
+        this.groupService = groupService;
+        this.userService = userService;
+    }
 
     public CreateGroupCase.Response createGroup(CreateGroupCase.Request request, Operator operator) {
         Group group = groupService.create(request.getName(), request.getDescription(), operator);

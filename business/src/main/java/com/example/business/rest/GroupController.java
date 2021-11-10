@@ -33,10 +33,15 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/groups")
 public class GroupController {
-    @Autowired
-    private GroupApplicationService applicationService;
-    @Autowired
-    private AuthorizeService authorizeService;
+
+    private final GroupApplicationService applicationService;
+
+    private final AuthorizeService authorizeService;
+
+    public GroupController(GroupApplicationService applicationService, AuthorizeService authorizeService) {
+        this.applicationService = applicationService;
+        this.authorizeService = authorizeService;
+    }
 
     @PostMapping
     @ResponseStatus(CREATED)

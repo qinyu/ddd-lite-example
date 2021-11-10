@@ -19,8 +19,12 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 public class QueryApplicationService {
-    @Autowired
-    private QuestionService questionService;
+
+    private final QuestionService questionService;
+
+    public QueryApplicationService(QuestionService questionService) {
+        this.questionService = questionService;
+    }
 
     public Page<QueryAnswersCase.Response> queryAnswers(String userId, Pageable pageable) {
         Specification<Answer> specification = (root, query, criteriaBuilder) ->

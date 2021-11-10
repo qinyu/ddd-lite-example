@@ -13,10 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/admins")
 public class AdminController {
-    @Autowired
-    private AdminApplicationService adminApplicationService;
-    @Autowired
-    private AuthorizeService authorizeService;
+
+    private final AdminApplicationService adminApplicationService;
+    private final AuthorizeService authorizeService;
+
+    public AdminController(AdminApplicationService adminApplicationService, AuthorizeService authorizeService) {
+        this.adminApplicationService = adminApplicationService;
+        this.authorizeService = authorizeService;
+    }
 
 
     @PutMapping("/password")

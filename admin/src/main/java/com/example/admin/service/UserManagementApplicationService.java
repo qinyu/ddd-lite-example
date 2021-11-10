@@ -19,8 +19,12 @@ import java.util.List;
 
 @Service
 public class UserManagementApplicationService {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+
+    public UserManagementApplicationService(UserService userService) {
+        this.userService = userService;
+    }
 
     public Page<GetUsersCase.Response> getUsers(String keyword, Pageable pageable) {
         Specification<User> spec = (root, query, criteriaBuilder) -> {

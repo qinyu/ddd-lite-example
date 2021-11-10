@@ -36,12 +36,18 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 public class QuestionApplicationService {
-    @Autowired
-    private QuestionService questionService;
-    @Autowired
-    private GroupService groupService;
-    @Autowired
-    private UserService userService;
+
+    private final QuestionService questionService;
+    private final GroupService groupService;
+    private final UserService userService;
+
+    public QuestionApplicationService(QuestionService questionService,
+                                      GroupService groupService,
+                                      UserService userService) {
+        this.questionService = questionService;
+        this.groupService = groupService;
+        this.userService = userService;
+    }
 
     public CreateQuestionCase.Response create(CreateQuestionCase.Request request, String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);

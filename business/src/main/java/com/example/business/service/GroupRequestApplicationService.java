@@ -9,8 +9,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GroupRequestApplicationService {
-    @Autowired
-    private GroupRequestService groupRequestService;
+
+    private final GroupRequestService groupRequestService;
+
+    public GroupRequestApplicationService(GroupRequestService groupRequestService) {
+        this.groupRequestService = groupRequestService;
+    }
 
     public CreateGroupRequestCase.Response createGroup(CreateGroupRequestCase.Request request, Operator operator) {
         GroupRequest groupRequest = groupRequestService.create(request.getName(), request.getDescription(), operator);

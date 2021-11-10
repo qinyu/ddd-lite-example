@@ -15,8 +15,12 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/authorizes/admin")
 public class AdminAuthorizeController {
-    @Autowired
-    private AdminAuthorizeApplicationService adminAuthorizeApplicationService;
+
+    private final AdminAuthorizeApplicationService adminAuthorizeApplicationService;
+
+    public AdminAuthorizeController(AdminAuthorizeApplicationService adminAuthorizeApplicationService) {
+        this.adminAuthorizeApplicationService = adminAuthorizeApplicationService;
+    }
 
     @PostMapping
     @ResponseStatus(CREATED)

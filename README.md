@@ -16,7 +16,7 @@ This is an example of a Java project with limited use of DDD style.
 - open
 - domain 
     - user 
-        - modal
+        - model
         - repository
         - service
     - auth

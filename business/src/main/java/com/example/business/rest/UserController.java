@@ -23,11 +23,15 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    @Autowired
-    private UserApplicationService applicationService;
 
-    @Autowired
-    private AuthorizeService authorizeService;
+    private final UserApplicationService applicationService;
+
+    private final AuthorizeService authorizeService;
+
+    public UserController(UserApplicationService applicationService, AuthorizeService authorizeService) {
+        this.applicationService = applicationService;
+        this.authorizeService = authorizeService;
+    }
 
     @PostMapping
     @ResponseStatus(CREATED)

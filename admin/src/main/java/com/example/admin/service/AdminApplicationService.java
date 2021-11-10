@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AdminApplicationService {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+
+    public AdminApplicationService(UserService userService) {
+        this.userService = userService;
+    }
 
     public void resetPassword(ResetPasswordCase.Request request, Operator operator) {
         userService.resetPassword(operator.getUserId(), request.getPassword(), operator);

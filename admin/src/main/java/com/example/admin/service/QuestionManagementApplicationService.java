@@ -30,12 +30,18 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 public class QuestionManagementApplicationService {
-    @Autowired
-    private QuestionService questionService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private GroupService groupService;
+
+    private final QuestionService questionService;
+    private final UserService userService;
+    private final GroupService groupService;
+
+    public QuestionManagementApplicationService(QuestionService questionService,
+                                                UserService userService,
+                                                GroupService groupService) {
+        this.questionService = questionService;
+        this.userService = userService;
+        this.groupService = groupService;
+    }
 
     public Page<GetQuestionsCase.Response> getQuestions(String keyword, Pageable pageable) {
         Specification<Question> spec = (root, query, criteriaBuilder) -> {

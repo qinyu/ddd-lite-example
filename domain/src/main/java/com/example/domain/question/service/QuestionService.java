@@ -7,7 +7,6 @@ import com.example.domain.question.model.Answer;
 import com.example.domain.question.model.Question;
 import com.example.domain.question.repository.AnswerRepository;
 import com.example.domain.question.repository.QuestionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,25 +18,29 @@ import java.util.Optional;
 
 @Service
 public class QuestionService {
-    @Autowired
-    private QuestionRepository repository;
-    @Autowired
-    private AnswerRepository answerRepository;
+
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
+
+    public QuestionService(QuestionRepository questionRepository, AnswerRepository answerRepository) {
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+    }
 
     public Question get(String id) {
         return _get(id);
     }
 
     private Question _get(String id) {
-        return repository.findById(id).orElseThrow(QuestionException::notFound);
+        return questionRepository.findById(id).orElseThrow(QuestionException::notFound);
     }
 
     public Page<Question> findAll(Specification<Question> spec, Pageable pageable) {
-        return repository.findAll(spec, pageable);
+        return questionRepository.findAll(spec, pageable);
     }
 
     public List<Question> findAll(Specification<Question> spec) {
-        return repository.findAll(spec);
+        return questionRepository.findAll(spec);
     }
 
     public Question create(String title, String description, GroupOperator operator) {
@@ -50,7 +53,7 @@ public class QuestionService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        return repository.save(question);
+        return questionRepository.save(question);
     }
 
     public Question update(String id, String title, String description, GroupOperator operator) {
@@ -63,7 +66,7 @@ public class QuestionService {
         question.setTitle(title);
         question.setDescription(description);
         question.setUpdatedAt(Instant.now());
-        return repository.save(question);
+        return questionRepository.save(question);
     }
 
     public Question updateStatus(String id, Question.Status status, GroupOperator operator) {
@@ -75,11 +78,11 @@ public class QuestionService {
 
         question.setStatus(status);
         question.setUpdatedAt(Instant.now());
-        return repository.save(question);
+        return questionRepository.save(question);
     }
 
     public void delete(String id, GroupOperator operator) {
-        Optional<Question> optionalQuestion = repository.findById(id);
+        Optional<Question> optionalQuestion = questionRepository.findById(id);
         if (!optionalQuestion.isPresent()) {
             return;
         }
@@ -91,7 +94,7 @@ public class QuestionService {
 
         answerRepository.deleteAll(question.getAnswers());
 
-        repository.deleteById(id);
+        questionRepository.deleteById(id);
     }
 
     private Answer _getAnswer(String answerId) {

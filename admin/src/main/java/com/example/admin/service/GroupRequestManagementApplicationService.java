@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GroupRequestManagementApplicationService {
-    @Autowired
-    private GroupRequestService groupRequestService;
 
+    private final GroupRequestService groupRequestService;
+
+    public GroupRequestManagementApplicationService(GroupRequestService groupRequestService) {
+        this.groupRequestService = groupRequestService;
+    }
 }

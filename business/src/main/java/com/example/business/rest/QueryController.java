@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/query")
 public class QueryController {
-    @Autowired
-    private QueryApplicationService applicationService;
+
+    private final QueryApplicationService applicationService;
+
+    public QueryController(QueryApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
 
     @GetMapping("/answers")
     public Page<QueryAnswersCase.Response> queryAnswers(@RequestParam String userId,

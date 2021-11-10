@@ -19,10 +19,14 @@ import java.util.List;
 
 @Service
 public class GroupManagementApplicationService {
-    @Autowired
-    private GroupService groupService;
-    @Autowired
-    private GroupRequestService groupRequestService;
+
+    private final GroupService groupService;
+    private final GroupRequestService groupRequestService;
+
+    public GroupManagementApplicationService(GroupService groupService, GroupRequestService groupRequestService) {
+        this.groupService = groupService;
+        this.groupRequestService = groupRequestService;
+    }
 
     public Page<GetGroupsCase.Response> getGroups(String keyword, Pageable pageable) {
         Specification<Group> specification = (root, query, criteriaBuilder) -> {
