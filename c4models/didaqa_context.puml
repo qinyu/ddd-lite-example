@@ -1,0 +1,15 @@
+@startuml
+!include includes/C4_Component.puml
+LAYOUT_WITH_LEGEND()
+
+Person(QuestionSubmitter, "提问者", "提出问题的用户")
+Person(AnswerProvider, "回答者", "回答问题的用户")
+Person(Admin, "管理员", "管理圈子、问题和回答")
+
+System(didaqa, "嘀嗒问答社区", "用户可以在这里提问和回答，可以建立自己的专业圈子", $link="./didaqa_container.puml")
+
+Rel(QuestionSubmitter, didaqa, "提问", "Web Browser")
+Rel(AnswerProvider, didaqa, "回答", "Web Browser")
+Rel(Admin, didaqa, "管理", "Web Browser")
+
+@enduml

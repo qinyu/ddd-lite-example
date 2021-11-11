@@ -1,0 +1,27 @@
+@startuml
+!include includes/C4_Container.puml
+LAYOUT_WITH_LEGEND()
+
+AddElementTag("covered", $borderColor="#d73027")
+
+Person(QuestionSubmitter, "提问者", "提出问题的用户")
+Person(AnswerProvider, "回答者", "回答问题的用户")
+Person(Admin, "管理员", "管理圈子、问题和回答")
+
+System_Boundary(didaqa, "嘀嗒问答社区") {
+    Container(DidaBusinessWeb, "Business WebApp", "Vue", "嘀嗒社区的前端应用：用户在这里提问或回答")
+    Container(DidaAdminWeb, "Admin WebApp", "Vue", "嘀嗒社区的管理应用：管理员在这里管理圈子、问答、用户")
+    Container(DidaApi, "Dida Service", "SpringBoot, SpringMVC, JPA", "嘀嗒社区单体服务", $tags="covered", $link="./didaqa_component.puml")
+    ContainerDb(DidaDb, "Dida DB", "MySql", "嘀嗒社区数据库：包括用户、问答、圈子")
+}
+
+Rel(QuestionSubmitter, DidaBusinessWeb, "访问", "浏览器")
+Rel(AnswerProvider, DidaBusinessWeb, "访问", "浏览器")
+Rel(Admin, DidaAdminWeb, "访问", "浏览器")
+
+Rel(DidaBusinessWeb, DidaApi, "请求", "REST")
+Rel(DidaAdminWeb, DidaApi, "请求", "REST")
+
+Rel(DidaApi, DidaDb, "读写", "Spring JPA")
+
+@enduml
