@@ -34,9 +34,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/questions")
 public class QuestionController {
-
     private final QuestionApplicationService questionApplicationService;
-
     private final AuthorizeService authorizeService;
 
     public QuestionController(QuestionApplicationService questionApplicationService,
@@ -48,14 +46,9 @@ public class QuestionController {
     @PostMapping
     @ResponseStatus(CREATED)
     public CreateQuestionCase.Response createQuestion(@RequestBody @Valid CreateQuestionCase.Request request) {
-        Operator operator = authorizeService.getOperator();
         String groupId = GroupContextHolder.getContext();
+        Operator operator = authorizeService.getOperator();
         return questionApplicationService.create(request, groupId, operator);
-    }
-
-    @GetMapping("/{id}")
-    public GetQuestionDetailCase.Response getQuestionDetail(@PathVariable String id) {
-        return questionApplicationService.getDetail(id);
     }
 
     @GetMapping
@@ -64,6 +57,26 @@ public class QuestionController {
                                                              @PageableDefault Pageable pageable) {
         String groupId = GroupContextHolder.getContext();
         return questionApplicationService.getByPage(groupId, keyword, createdBy, pageable);
+    }
+
+    @GetMapping("/{id}")
+    public GetQuestionDetailCase.Response getQuestionDetail(@PathVariable String id) {
+        return questionApplicationService.getDetail(id);
+    }
+
+    @PostMapping("/{id}/answers")
+    @ResponseStatus(CREATED)
+    public CreateAnswerCase.Response createAnswer(@PathVariable String id,
+                                                  @RequestBody @Valid CreateAnswerCase.Request request) {
+        String groupId = GroupContextHolder.getContext();
+        Operator operator = authorizeService.getOperator();
+        return questionApplicationService.createAnswer(id, request, groupId, operator);
+    }
+
+    @GetMapping("/{id}/answers")
+    public Page<GetAnswerCase.Response> getAnswersByPage(@PathVariable String id,
+                                                         @PageableDefault Pageable pageable) {
+        return questionApplicationService.getAnswersByPage(id, pageable);
     }
 
     @GetMapping("/management")
@@ -98,21 +111,6 @@ public class QuestionController {
         Operator operator = authorizeService.getOperator();
         String groupId = GroupContextHolder.getContext();
         questionApplicationService.delete(id, groupId, operator);
-    }
-
-    @PostMapping("/{id}/answers")
-    @ResponseStatus(CREATED)
-    public CreateAnswerCase.Response createAnswer(@PathVariable String id,
-                                                  @RequestBody @Valid CreateAnswerCase.Request request) {
-        Operator operator = authorizeService.getOperator();
-        String groupId = GroupContextHolder.getContext();
-        return questionApplicationService.createAnswer(id, request, groupId, operator);
-    }
-
-    @GetMapping("/{id}/answers")
-    public Page<GetAnswerCase.Response> getAnswersByPage(@PathVariable String id,
-                                                         @PageableDefault Pageable pageable) {
-        return questionApplicationService.getAnswersByPage(id, pageable);
     }
 
     @PutMapping("/{id}/answers/{answerId}")

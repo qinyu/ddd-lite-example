@@ -17,7 +17,6 @@ import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.domain.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,7 +35,6 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 public class QuestionApplicationService {
-
     private final QuestionService questionService;
     private final GroupService groupService;
     private final UserService userService;
@@ -51,37 +49,19 @@ public class QuestionApplicationService {
 
     public CreateQuestionCase.Response create(CreateQuestionCase.Request request, String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         Question question = questionService.create(request.getTitle(), request.getDescription(), groupOperator);
-
         return CreateQuestionCase.Response.from(question);
     }
 
     public GetQuestionDetailCase.Response getDetail(String id) {
         Question question = questionService.get(id);
-
         return GetQuestionDetailCase.Response.from(question);
     }
 
     public Page<GetQuestionCase.Response> getByPage(String groupId, String keyword, String createdBy,
                                                     Pageable pageable) {
-        Specification<Question> specification = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicateList = new ArrayList<>();
-            predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.groupId), groupId));
-
-            if (keyword != null) {
-                predicateList.add(criteriaBuilder.like(root.get(Question.Fields.title), "%" + keyword + "%"));
-            }
-
-            if (createdBy != null) {
-                predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.createdBy), createdBy));
-            }
-
-            return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
-        };
-
-        Page<Question> questionPage = questionService.findAll(specification, pageable);
-
+        Specification<Question> questionSpecification = _createQuestionSpecification(groupId, keyword, createdBy);
+        Page<Question> questionPage = questionService.findAll(questionSpecification, pageable);
         return questionPage.map(GetQuestionCase.Response::from);
     }
 
@@ -89,22 +69,9 @@ public class QuestionApplicationService {
                                                                            String keyword,
                                                                            String createdBy,
                                                                            Pageable pageable) {
-        Specification<Question> specification = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicateList = new ArrayList<>();
-            predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.groupId), groupId));
 
-            if (keyword != null) {
-                predicateList.add(criteriaBuilder.like(root.get(Question.Fields.title), "%" + keyword + "%"));
-            }
-
-            if (createdBy != null) {
-                predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.createdBy), createdBy));
-            }
-
-            return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
-        };
-
-        Page<Question> page = questionService.findAll(specification, pageable);
+        Specification<Question> questionSpecification = _createQuestionSpecification(groupId, keyword, createdBy);
+        Page<Question> page = questionService.findAll(questionSpecification, pageable);
 
         Set<String> userIds = page.getContent().stream().map(Question::getCreatedBy).collect(Collectors.toSet());
         Map<String, User> userMap = userService.findAll(getUsersIn(userIds), Pageable.unpaged()).getContent().stream()
@@ -116,7 +83,6 @@ public class QuestionApplicationService {
     public UpdateQuestionCase.Response update(String id, UpdateQuestionCase.Request request, String groupId,
                                               Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         Question question =
                 questionService.update(id, request.getTitle(), request.getDescription(), groupOperator);
 
@@ -126,24 +92,36 @@ public class QuestionApplicationService {
     public UpdateQuestionStatusCase.Response updateStatus(String id, UpdateQuestionStatusCase.Request request,
                                                           String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         Question question = questionService.updateStatus(id, request.getStatus(), groupOperator);
-
         return UpdateQuestionStatusCase.Response.from(question);
     }
 
     public void delete(String id, String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         questionService.delete(id, groupOperator);
+    }
+
+    private Specification<Question> _createQuestionSpecification(String groupId, String keyword, String createdBy) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicateList = new ArrayList<>();
+            predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.groupId), groupId));
+
+            if (keyword != null) {
+                predicateList.add(criteriaBuilder.like(root.get(Question.Fields.title), "%" + keyword + "%"));
+            }
+
+            if (createdBy != null) {
+                predicateList.add(criteriaBuilder.equal(root.get(Question.Fields.createdBy), createdBy));
+            }
+
+            return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
+        };
     }
 
     public CreateAnswerCase.Response createAnswer(String id, CreateAnswerCase.Request request, String groupId,
                                                   Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         Answer answer = questionService.addAnswer(id, request.getContent(), groupOperator);
-
         return CreateAnswerCase.Response.from(answer);
     }
 
@@ -161,15 +139,12 @@ public class QuestionApplicationService {
     public UpdateAnswerCase.Response updateAnswer(String id, String answerId, UpdateAnswerCase.Request request,
                                                   String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         Answer answer = questionService.updateAnswer(id, answerId, request.getContent(), groupOperator);
-
         return UpdateAnswerCase.Response.from(answer);
     }
 
     public void deleteAnswer(String id, String answerId, String groupId, Operator operator) {
         GroupOperator groupOperator = groupService.getOperator(groupId, operator);
-
         questionService.deleteAnswer(id, answerId, groupOperator);
     }
 }

@@ -4,7 +4,6 @@ import com.example.domain.user.exception.UserException;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.domain.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,30 +16,33 @@ import java.util.List;
 
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public UserService(UserRepository repository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userRepository = repository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     public User get(String id) {
         return _get(id);
     }
 
     private User _get(String id) {
-        return repository.findById(id).orElseThrow(UserException::notFound);
+        return userRepository.findById(id).orElseThrow(UserException::notFound);
     }
 
     public User get(Example<User> example) {
-        return repository.findOne(example).orElseThrow(UserException::notFound);
+        return userRepository.findOne(example).orElseThrow(UserException::notFound);
     }
 
     public Page<User> findAll(Specification<User> spec, Pageable pageable) {
-        return repository.findAll(spec, pageable);
+        return userRepository.findAll(spec, pageable);
     }
 
     public List<User> findAll(Specification<User> spec) {
-        return repository.findAll(spec);
+        return userRepository.findAll(spec);
     }
 
     public User create(String name, String email, String password) {
@@ -54,7 +56,7 @@ public class UserService {
                 .status(User.Status.NORMAL)
                 .build();
         validateConflicted(user);
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     public User update(String id, String name, Operator operator) {
@@ -66,7 +68,7 @@ public class UserService {
 
         user.setName(name);
         user.setUpdatedAt(Instant.now());
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     public User resetPassword(String id, String password, Operator operator) {
@@ -78,7 +80,7 @@ public class UserService {
 
         user.setPassword(bCryptPasswordEncoder.encode(password));
         user.setUpdatedAt(Instant.now());
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     public User updateStatus(String id, User.Status status, Operator operator) {
@@ -90,11 +92,11 @@ public class UserService {
         user.setStatus(status);
         user.setUpdatedAt(Instant.now());
 
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     private void validateConflicted(User user) {
-        if (repository.exists(Example.of(User.builder().email(user.getEmail()).build()))) {
+        if (userRepository.exists(Example.of(User.builder().email(user.getEmail()).build()))) {
             throw UserException.emailConflicted();
         }
     }
