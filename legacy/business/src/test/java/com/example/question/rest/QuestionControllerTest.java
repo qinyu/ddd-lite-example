@@ -19,18 +19,15 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
 
@@ -62,6 +59,14 @@ class QuestionControllerTest extends TestBase {
                 response.getRole());
     }
 
+    private String generateDummyId(String userName) {
+        return userName + "-id";
+    }
+
+    private String prepareGroupId() {
+        return "group-id";
+    }
+
     @Override
     public User prepareUser(String name, String email) {
         return User.builder()
@@ -72,12 +77,8 @@ class QuestionControllerTest extends TestBase {
                 .updatedAt(Instant.now())
                 .role(User.Role.USER)
                 .status(User.Status.NORMAL)
-                .id(name + "-id")
+                .id(generateDummyId(name))
                 .build();
-    }
-
-    private String prepareGroupId() {
-        return "group-id";
     }
 
     private Operator mockDefaultGroupMember(User user) {
@@ -104,9 +105,34 @@ class QuestionControllerTest extends TestBase {
         return operator;
     }
 
+    private void mockUserClient(User user, User otherUser) {
+        String userId = generateDummyId(user.getName());
+        String otherUserId = generateDummyId(otherUser.getName());
+        Mockito.when(userClient.getAllUsers(Set.of(userId, otherUserId))).thenReturn(
+                new PageImpl<>(List.of(
+                        GetUserDetailCase.Response.from(user),
+                        GetUserDetailCase.Response.from(otherUser)
+                ))
+        );
+
+        Mockito.when(userClient.getAllUsers(Set.of(userId))).thenReturn(
+                new PageImpl<>(List.of(
+                        GetUserDetailCase.Response.from(user)
+                ))
+        );
+
+        Mockito.when(userClient.getAllUsers(Set.of(otherUserId))).thenReturn(
+                new PageImpl<>(List.of(
+                        GetUserDetailCase.Response.from(otherUser)
+                ))
+        );
+    }
+
     @Test
     void should_create_question() {
         User user = this.prepareUser("anyName", "anyEmail");
+        mockDefaultGroupMember(user);
+
         String title = "title";
         String description = "description";
 
@@ -215,12 +241,7 @@ class QuestionControllerTest extends TestBase {
         User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockDefaultGroupMember(otherUser);
 
-        Mockito.when(userClient.getAllUsers(Set.of("anyName-id", "otherUserName-id"))).thenReturn(
-                new PageImpl<>(List.of(
-                        GetUserDetailCase.Response.from(user),
-                        GetUserDetailCase.Response.from(otherUser)
-                ))
-        );
+        mockUserClient(user, otherUser);
 
         GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         GroupOperator otherGroupOperator = getGroupOperator(Group.DEFAULT, otherOperator);
@@ -228,7 +249,6 @@ class QuestionControllerTest extends TestBase {
         Question question1 = questionService.create("anyTitle1", "anyDescription1", groupOperator);
         questionService.create("anyTitle2", "anyDescription2", groupOperator);
         Question question3 = questionService.create("anyTitle3", "anyDescription3", otherGroupOperator);
-
 
         givenDefault(Group.DEFAULT)
                 .param("sort", "createdAt")
@@ -344,7 +364,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         Operator operator = mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         mockGroupAdmin(groupId, otherUser);
 
         GroupOperator groupOperator = getGroupOperator(groupId, operator);
@@ -384,7 +404,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockGroupAdmin(groupId, otherUser);
 
         GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
@@ -424,7 +444,7 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = mockDefaultGroupMember(user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockDefaultGroupMember(otherUser);
 
         GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
@@ -453,7 +473,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         Operator operator = mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockGroupAdmin(groupId, otherUser);
 
         GroupOperator groupOperator = getGroupOperator(groupId, operator);
@@ -482,7 +502,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         Operator operator = mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockGroupAdmin(groupId, otherUser);
 
         GroupOperator groupOperator = getGroupOperator(groupId, operator);
@@ -541,7 +561,7 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = mockDefaultGroupMember(user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockDefaultGroupMember(otherUser);
 
         GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
@@ -552,12 +572,7 @@ class QuestionControllerTest extends TestBase {
         Answer answer0 = questionService.addAnswer(question.getId(), "content0", groupOperator);
         Answer answer1 = questionService.addAnswer(question.getId(), "content1", otherGroupOperator);
 
-        Mockito.when(userClient.getAllUsers(Set.of("anyName-id", "otherUserName-id"))).thenReturn(
-                new PageImpl<>(List.of(
-                        GetUserDetailCase.Response.from(user),
-                        GetUserDetailCase.Response.from(otherUser)
-                ))
-        );
+        mockUserClient(user, otherUser);
 
         Response response = givenDefault()
                 .param("sort", "createdAt")
@@ -622,7 +637,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockGroupAdmin(groupId, otherUser);
 
         GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
@@ -645,7 +660,7 @@ class QuestionControllerTest extends TestBase {
         String groupId = prepareGroupId();
         mockGroupCreator(groupId, user);
 
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = mockGroupAdmin(groupId, otherUser);
 
         GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);

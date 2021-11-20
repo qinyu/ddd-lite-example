@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -289,7 +290,7 @@ class GroupControllerTest extends TestBase {
                     {
                         put("role", GroupMember.Role.ADMIN);
                     }
-                })                .when()
+                }).when()
                 .put("/groups/" + group.getId() + "/members/" + groupMember.getUserId());
         response.then().statusCode(200)
                 .body("groupId", is(group.getId()))
@@ -308,7 +309,7 @@ class GroupControllerTest extends TestBase {
                     {
                         put("role", GroupMember.Role.NORMAL);
                     }
-                })                .when()
+                }).when()
                 .put("/groups/" + group.getId() + "/members/" + groupMember.getUserId());
         response.then().statusCode(200)
                 .body("groupId", is(group.getId()))
@@ -340,7 +341,7 @@ class GroupControllerTest extends TestBase {
                     {
                         put("userId", groupMember.getUserId());
                     }
-                })                .when()
+                }).when()
                 .put("/groups/" + group.getId() + "/owner");
         response.then().statusCode(200)
                 .body("groupId", is(group.getId()))
@@ -388,5 +389,80 @@ class GroupControllerTest extends TestBase {
 
     private Operator getOperator(User user) {
         return Operator.builder().userId(user.getId()).role(user.getRole()).build();
+    }
+
+    @Test
+    void should_get_group_operators() {
+        User creator = this.prepareUser("anyName", "anyEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
+
+        given()
+                .when()
+                .get("/groups/" + Group.DEFAULT + "/members/" + creator.getId())
+                .then()
+                .statusCode(200)
+                .body("userId", is(creator.getId()))
+                .body("groupId", is(Group.DEFAULT))
+                .body("role", is(GroupMember.Role.NORMAL.name()));
+
+        String name = "name";
+        String description = "description";
+
+        String groupId = givenWithAuthorize(creator)
+                .body(new HashMap<String, Object>() {
+                    {
+                        put("name", name);
+                        put("description", description);
+                    }
+                })
+                .when()
+                .post("/groups")
+                .jsonPath()
+                .getString("id");
+
+        given()
+                .when()
+                .get("/groups/" + groupId + "/members/" + creator.getId())
+                .then()
+                .statusCode(200)
+                .body("userId", is(creator.getId()))
+                .body("groupId", is(groupId))
+                .body("role", is(GroupMember.Role.OWNER.name()));
+
+        given()
+                .when()
+                .get("/groups/" + groupId + "/members/" + otherUser.getId())
+                .then()
+                .statusCode(404);
+
+        givenWithAuthorize(otherUser)
+                .when()
+                .post("/groups/" + groupId + "/members/me");
+
+        given()
+                .when()
+                .get("/groups/" + groupId + "/members/" + otherUser.getId())
+                .then()
+                .statusCode(200)
+                .body("userId", is(otherUser.getId()))
+                .body("groupId", is(groupId))
+                .body("role", is(GroupMember.Role.NORMAL.name()));
+
+        givenWithAuthorize(creator)
+                .body(new HashMap<String, Object>() {
+                    {
+                        put("role", GroupMember.Role.ADMIN);
+                    }
+                }).when()
+                .put("/groups/" + groupId + "/members/" + otherUser.getId());
+
+        given()
+                .when()
+                .get("/groups/" + groupId + "/members/" + otherUser.getId())
+                .then()
+                .statusCode(200)
+                .body("userId", is(otherUser.getId()))
+                .body("groupId", is(groupId))
+                .body("role", is(GroupMember.Role.ADMIN.name()));
     }
 }
