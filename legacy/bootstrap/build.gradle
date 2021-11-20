@@ -1,0 +1,8 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':legacy:admin')
+    implementation project(':legacy:business')
+}
