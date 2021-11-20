@@ -6,7 +6,6 @@ import com.example.admin.usecase.user.GetUserDetailCase;
 import com.example.admin.usecase.user.GetUsersCase;
 import com.example.admin.usecase.user.UpdateUserStatusCase;
 import com.example.domain.auth.AuthorizeContextHolder;
-import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

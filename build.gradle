@@ -23,6 +23,10 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'java'
 
+    repositories {
+        mavenCentral()
+    }
+
     bootJar {
         enabled = false
     }

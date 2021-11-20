@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation project(':legacy:domain')
+    testImplementation project(':shared:domain')
     testImplementation project(':legacy:business')
     testImplementation project(':legacy:admin')
 
