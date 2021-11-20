@@ -1,8 +1,0 @@
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation project(':admin')
-    implementation project(':business')
-}

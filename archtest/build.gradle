@@ -10,9 +10,9 @@ repositories {
 }
 
 dependencies {
-    testImplementation project(':domain')
-    testImplementation project(':business')
-    testImplementation project(':admin')
+    testImplementation project(':legacy:domain')
+    testImplementation project(':legacy:business')
+    testImplementation project(':legacy:admin')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testImplementation 'com.tngtech.archunit:archunit-junit5:0.21.0'
