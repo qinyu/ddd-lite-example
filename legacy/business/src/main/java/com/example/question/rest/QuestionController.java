@@ -1,10 +1,10 @@
-package com.example.business.rest;
+package com.example.question.rest;
 
-import com.example.business.service.QuestionApplicationService;
-import com.example.business.usecase.question.*;
+import com.example.question.service.QuestionApplicationService;
 import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.group.GroupContextHolder;
 import com.example.domain.user.model.Operator;
+import com.example.question.usecase.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

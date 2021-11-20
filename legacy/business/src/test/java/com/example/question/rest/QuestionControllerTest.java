@@ -1,10 +1,9 @@
-package com.example.business.rest;
+package com.example.question.rest;
 
 import com.example.TestBase;
 import com.example.domain.group.model.Group;
 import com.example.domain.group.model.GroupMember;
 import com.example.domain.group.model.GroupOperator;
-import com.example.domain.group.service.GroupService;
 import com.example.domain.question.model.Answer;
 import com.example.domain.question.model.Question;
 import com.example.domain.question.repository.AnswerRepository;
@@ -12,6 +11,7 @@ import com.example.domain.question.repository.QuestionRepository;
 import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
+import com.example.question.service.GroupClient;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ class QuestionControllerTest extends TestBase {
     @Autowired
     private AnswerRepository answerRepository;
     @Autowired
-    private GroupService groupService;
+    private GroupClient groupService;
 
     @Test
     void should_create_question() {
@@ -75,7 +75,7 @@ class QuestionControllerTest extends TestBase {
     void should_get_question_detail() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Response response = givenDefault()
@@ -94,8 +94,8 @@ class QuestionControllerTest extends TestBase {
         Operator operator = getOperator(user);
         User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = getOperator(otherUser);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
-        GroupOperator otherGroupOperator = groupService.getOperator(Group.DEFAULT, otherOperator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
         Question question0 = questionService.create("anyTitle0", "anyDescription0", groupOperator);
         Question question1 = questionService.create("anyTitle1", "anyDescription1", groupOperator);
         questionService.create("anyTitle2", "anyDescription2", groupOperator);
@@ -147,8 +147,8 @@ class QuestionControllerTest extends TestBase {
         Operator operator = getOperator(user);
         User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
         Operator otherOperator = getOperator(otherUser);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
-        GroupOperator otherGroupOperator = groupService.getOperator(Group.DEFAULT, otherOperator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
         Question question0 = questionService.create("anyTitle0", "anyDescription0", groupOperator);
         Question question1 = questionService.create("anyTitle1", "anyDescription1", groupOperator);
         questionService.create("anyTitle2", "anyDescription2", groupOperator);
@@ -200,7 +200,7 @@ class QuestionControllerTest extends TestBase {
     void should_update_question() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String newTitle = "newTitle";
         String newDescription = "newDescription";
@@ -229,7 +229,7 @@ class QuestionControllerTest extends TestBase {
     void should_update_question_status_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Response response = givenWithAuthorize(user, Group.DEFAULT)
@@ -265,7 +265,7 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         GroupMember groupAdmin = addGroupAdmin(group, otherUser, groupOperator);
 
@@ -304,11 +304,11 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
         addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getOperator(group.getId(), otherOperator);
+        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
 
@@ -344,10 +344,10 @@ class QuestionControllerTest extends TestBase {
     void should_delete_question_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
-        GroupOperator otherGroupOperator = groupService.getOperator(Group.DEFAULT, otherOperator);
+        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String questionId = question.getId();
@@ -371,11 +371,11 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
         addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminOperator = groupService.getOperator(group.getId(), otherOperator);
+        GroupOperator adminOperator = groupService.getGroupOperator(group.getId(), otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String questionId = question.getId();
@@ -399,11 +399,11 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
         GroupMember groupAdmin = addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getOperator(groupAdmin.getGroupId(), otherOperator);
+        GroupOperator adminGroupOperator = groupService.getGroupOperator(groupAdmin.getGroupId(), otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
         String questionId = question.getId();
@@ -426,7 +426,7 @@ class QuestionControllerTest extends TestBase {
     void should_create_answer() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String content = "content";
 
@@ -456,10 +456,10 @@ class QuestionControllerTest extends TestBase {
     void should_get_all_answers_by_page() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
-        GroupOperator otherGroupOperator = groupService.getOperator(Group.DEFAULT, otherOperator);
+        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Answer answer0 = questionService.addAnswer(question.getId(), "content0", groupOperator);
@@ -481,7 +481,7 @@ class QuestionControllerTest extends TestBase {
     void should_update_answer() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", groupOperator);
         String newContent = "newContent";
@@ -507,7 +507,7 @@ class QuestionControllerTest extends TestBase {
     void should_delete_answer_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getOperator(Group.DEFAULT, operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", groupOperator);
 
@@ -524,11 +524,11 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
         addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getOperator(group.getId(), otherOperator);
+        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
 
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
@@ -547,11 +547,11 @@ class QuestionControllerTest extends TestBase {
         User user = this.prepareUser("anyName", "anyEmail");
         Operator operator = getOperator(user);
         Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getOperator(group.getId(), operator);
+        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
         Operator otherOperator = getOperator(otherUser);
         addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getOperator(group.getId(), otherOperator);
+        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", adminGroupOperator);

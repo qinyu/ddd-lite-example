@@ -1,4 +1,4 @@
-package com.example.business.usecase.question;
+package com.example.question.usecase;
 
 import com.example.domain.question.model.Question;
 import lombok.AllArgsConstructor;
@@ -7,17 +7,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-public class CreateQuestionCase {
+public class UpdateQuestionStatusCase {
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Request {
-        @NotBlank(message = "question_title_required")
-        private String title;
-        private String description;
+        @NotNull(message = "question_status_required")
+        private Question.Status status;
     }
 
     @Getter
@@ -25,14 +24,12 @@ public class CreateQuestionCase {
     @Builder
     public static class Response {
         private String id;
-        private String title;
-        private String description;
+        private Question.Status status;
 
         public static Response from(Question question) {
             return Response.builder()
                     .id(question.getId())
-                    .title(question.getTitle())
-                    .description(question.getDescription())
+                    .status(question.getStatus())
                     .build();
         }
     }

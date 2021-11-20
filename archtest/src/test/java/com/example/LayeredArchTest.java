@@ -8,7 +8,6 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @AnalyzeClasses(packages = "com.example")
 public class LayeredArchTest {
-
     @ArchTest
     static final ArchRule layer_dependencies_are_respected = layeredArchitecture()
             .layer("Presentation").definedBy("..rest..")
@@ -17,11 +16,15 @@ public class LayeredArchTest {
                     "com.example.admin.common..",
                     "com.example.business.service..",
                     "com.example.business.common..",
+                    "com.example.question.service..",
+                    "com.example.question.common..",
                     "..usecase..")
             .layer("Domain").definedBy("..domain..")
+            .layer("Infrastructure").definedBy("..infrastructure..")
 
             .whereLayer("Presentation").mayNotBeAccessedByAnyLayer()
-            .whereLayer("Application").mayOnlyBeAccessedByLayers("Application", "Presentation")
-            .whereLayer("Domain").mayOnlyBeAccessedByLayers("Domain", "Application", "Presentation");
+            .whereLayer("Infrastructure").mayNotBeAccessedByAnyLayer()
+            .whereLayer("Application").mayOnlyBeAccessedByLayers("Presentation", "Infrastructure")
+            .whereLayer("Domain").mayOnlyBeAccessedByLayers("Domain", "Application", "Presentation", "Infrastructure");
 
 }
