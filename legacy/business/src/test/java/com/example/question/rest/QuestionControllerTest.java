@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
 import java.util.*;
@@ -46,6 +47,9 @@ class QuestionControllerTest extends TestBase {
     private GroupClient groupClient;
     @Autowired
     private UserClient userClient;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
 
     private Operator getOperator(User user) {
         return Operator.builder().userId(user.getId()).role(user.getRole()).build();
@@ -63,7 +67,7 @@ class QuestionControllerTest extends TestBase {
         return User.builder()
                 .name(name)
                 .email(email)
-                .password("")
+                .password(bCryptPasswordEncoder.encode("password"))
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .role(User.Role.USER)
