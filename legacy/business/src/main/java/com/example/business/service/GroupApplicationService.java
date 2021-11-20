@@ -11,10 +11,12 @@ import com.example.business.usecase.group.UpdateGroupCase;
 import com.example.business.usecase.group.UpdateGroupMemberCase;
 import com.example.domain.group.model.Group;
 import com.example.domain.group.model.GroupMember;
+import com.example.domain.group.model.GroupOperator;
 import com.example.domain.group.service.GroupService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.domain.user.service.UserService;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -138,5 +140,10 @@ public class GroupApplicationService {
 
     public void removeMember(String id, String userId, Operator operator) {
         groupService.deleteMember(id, userId, operator);
+    }
+
+    public GroupOperator getOperator(String id, String userId) {
+        User user = userService.get(Example.of(User.builder().id(userId).build()));
+        return groupService.getOperator(id, Operator.builder().role(user.getRole()).userId(user.getId()).build());
     }
 }

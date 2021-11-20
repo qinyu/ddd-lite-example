@@ -3,6 +3,7 @@ package com.example.business.rest;
 import com.example.business.service.GroupApplicationService;
 import com.example.business.usecase.group.*;
 import com.example.domain.auth.AuthorizeContextHolder;
+import com.example.domain.group.model.GroupOperator;
 import com.example.domain.user.model.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -95,6 +96,11 @@ public class GroupController {
     public void removeMember(@PathVariable String id, @PathVariable String userId) {
         Operator operator = AuthorizeContextHolder.getOperator();
         applicationService.removeMember(id, userId, operator);
+    }
+
+    @GetMapping("/{id}/members/{userId}")
+    public GetGroupOperatorCase.Response getGroupOperator(@PathVariable String id, @PathVariable String userId) {
+        return GetGroupOperatorCase.Response.from(applicationService.getOperator(id, userId));
     }
 
 }

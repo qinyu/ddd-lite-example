@@ -1,5 +1,6 @@
 package com.example.question.service;
 
+import com.example.business.usecase.group.GetGroupOperatorCase;
 import com.example.domain.group.model.GroupOperator;
 import com.example.domain.question.model.Answer;
 import com.example.domain.question.model.Question;
@@ -26,20 +27,27 @@ import static java.util.stream.Collectors.toMap;
 public class QuestionApplicationService {
     private final QuestionService questionService;
     private final GroupClient groupClient;
-    private final UsersClient usersClient;
+    private final UserClient userClient;
 
     public QuestionApplicationService(QuestionService questionService,
                                       GroupClient groupClient,
-                                      UsersClient usersClient) {
+                                      UserClient userClient) {
         this.questionService = questionService;
         this.groupClient = groupClient;
-        this.usersClient = usersClient;
+        this.userClient = userClient;
     }
 
     public CreateQuestionCase.Response create(CreateQuestionCase.Request request, String groupId, Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Question question = questionService.create(request.getTitle(), request.getDescription(), groupOperator);
         return CreateQuestionCase.Response.from(question);
+    }
+
+    private GroupOperator getGroupOperator(String groupId, Operator operator) {
+        GetGroupOperatorCase.Response response = groupClient.getGroupOperator(groupId, operator);
+        return new GroupOperator(response.getGroupId(),
+                response.getUserId(),
+                response.getRole());
     }
 
     public GetQuestionDetailCase.Response getDetail(String id) {
@@ -63,15 +71,20 @@ public class QuestionApplicationService {
         Page<Question> page = questionService.findAll(questionSpecification, pageable);
 
         Set<String> userIds = page.getContent().stream().map(Question::getCreatedBy).collect(Collectors.toSet());
-        Map<String, User> userMap = usersClient.getAllUsers(userIds).getContent().stream()
-                .collect(toMap(User::getId, Function.identity()));
+        Map<String, User> userMap = getStringUserMap(userIds);
         return page.map(question -> GetManagementQuestionCase.Response
                 .from(question, userMap.get(question.getCreatedBy())));
     }
 
+    private Map<String, User> getStringUserMap(Set<String> userIds) {
+        return userClient.getAllUsers(userIds).getContent().stream()
+                .map(response -> User.builder().id(response.getId()).name(response.getName()).build())
+                .collect(toMap(User::getId, Function.identity()));
+    }
+
     public UpdateQuestionCase.Response update(String id, UpdateQuestionCase.Request request, String groupId,
                                               Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Question question =
                 questionService.update(id, request.getTitle(), request.getDescription(), groupOperator);
 
@@ -80,13 +93,13 @@ public class QuestionApplicationService {
 
     public UpdateQuestionStatusCase.Response updateStatus(String id, UpdateQuestionStatusCase.Request request,
                                                           String groupId, Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Question question = questionService.updateStatus(id, request.getStatus(), groupOperator);
         return UpdateQuestionStatusCase.Response.from(question);
     }
 
     public void delete(String id, String groupId, Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         questionService.delete(id, groupOperator);
     }
 
@@ -109,7 +122,7 @@ public class QuestionApplicationService {
 
     public CreateAnswerCase.Response createAnswer(String id, CreateAnswerCase.Request request, String groupId,
                                                   Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Answer answer = questionService.addAnswer(id, request.getContent(), groupOperator);
         return CreateAnswerCase.Response.from(answer);
     }
@@ -120,20 +133,19 @@ public class QuestionApplicationService {
         Page<Answer> page = questionService.findAllAnswers(specification, pageable);
 
         Set<String> userIds = page.getContent().stream().map(Answer::getCreatedBy).collect(Collectors.toSet());
-        Map<String, User> userMap = usersClient.getAllUsers(userIds).getContent().stream()
-                .collect(toMap(User::getId, Function.identity()));
+        Map<String, User> userMap = getStringUserMap(userIds);
         return page.map(answer -> GetAnswerCase.Response.from(answer, userMap.get(answer.getCreatedBy())));
     }
 
     public UpdateAnswerCase.Response updateAnswer(String id, String answerId, UpdateAnswerCase.Request request,
                                                   String groupId, Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Answer answer = questionService.updateAnswer(id, answerId, request.getContent(), groupOperator);
         return UpdateAnswerCase.Response.from(answer);
     }
 
     public void deleteAnswer(String id, String answerId, String groupId, Operator operator) {
-        GroupOperator groupOperator = groupClient.getGroupOperator(groupId, operator);
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         questionService.deleteAnswer(id, answerId, groupOperator);
     }
 

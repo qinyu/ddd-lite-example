@@ -1,6 +1,8 @@
 package com.example.question.rest;
 
 import com.example.TestBase;
+import com.example.business.usecase.group.GetGroupOperatorCase;
+import com.example.business.usecase.user.GetUserDetailCase;
 import com.example.domain.group.model.Group;
 import com.example.domain.group.model.GroupMember;
 import com.example.domain.group.model.GroupOperator;
@@ -12,15 +14,19 @@ import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.question.service.GroupClient;
+import com.example.question.service.UserClient;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Function;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -37,7 +43,62 @@ class QuestionControllerTest extends TestBase {
     @Autowired
     private AnswerRepository answerRepository;
     @Autowired
-    private GroupClient groupService;
+    private GroupClient groupClient;
+    @Autowired
+    private UserClient userClient;
+
+    private Operator getOperator(User user) {
+        return Operator.builder().userId(user.getId()).role(user.getRole()).build();
+    }
+
+    private GroupOperator getGroupOperator(String groupId, Operator operator) {
+        GetGroupOperatorCase.Response response = groupClient.getGroupOperator(groupId, operator);
+        return new GroupOperator(response.getGroupId(),
+                response.getUserId(),
+                response.getRole());
+    }
+
+    @Override
+    public User prepareUser(String name, String email) {
+        return User.builder()
+                .name(name)
+                .email(email)
+                .password("")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .role(User.Role.USER)
+                .status(User.Status.NORMAL)
+                .id(name + "-id")
+                .build();
+    }
+
+    private String prepareGroupId() {
+        return "group-id";
+    }
+
+    private Operator mockDefaultGroupMember(User user) {
+        Operator operator = getOperator(user);
+        Mockito.when(groupClient.getGroupOperator(Group.DEFAULT, operator)).thenReturn(
+                new GetGroupOperatorCase.Response(Group.DEFAULT, operator.getUserId(), GroupMember.Role.NORMAL)
+        );
+        return operator;
+    }
+
+    private Operator mockGroupCreator(String groupId, User user) {
+        Operator operator = getOperator(user);
+        Mockito.when(groupClient.getGroupOperator(groupId, operator)).thenReturn(
+                new GetGroupOperatorCase.Response(groupId, operator.getUserId(), GroupMember.Role.OWNER)
+        );
+        return operator;
+    }
+
+    private Operator mockGroupAdmin(String groupId, User user) {
+        Operator operator = getOperator(user);
+        Mockito.when(groupClient.getGroupOperator(groupId, operator)).thenReturn(
+                new GetGroupOperatorCase.Response(groupId, operator.getUserId(), GroupMember.Role.ADMIN)
+        );
+        return operator;
+    }
 
     @Test
     void should_create_question() {
@@ -70,12 +131,11 @@ class QuestionControllerTest extends TestBase {
 
     }
 
-
     @Test
     void should_get_question_detail() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Response response = givenDefault()
@@ -91,11 +151,13 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_query_questions_by_page() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
+        Operator operator = mockDefaultGroupMember(user);
+
         User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
-        Operator otherOperator = getOperator(otherUser);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
-        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
+        Operator otherOperator = mockDefaultGroupMember(otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = getGroupOperator(Group.DEFAULT, otherOperator);
         Question question0 = questionService.create("anyTitle0", "anyDescription0", groupOperator);
         Question question1 = questionService.create("anyTitle1", "anyDescription1", groupOperator);
         questionService.create("anyTitle2", "anyDescription2", groupOperator);
@@ -144,15 +206,25 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_get_management_questions_by_page() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
+        Operator operator = mockDefaultGroupMember(user);
+
         User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
-        Operator otherOperator = getOperator(otherUser);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
-        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
+        Operator otherOperator = mockDefaultGroupMember(otherUser);
+
+        Mockito.when(userClient.getAllUsers(Set.of("anyName-id", "otherUserName-id"))).thenReturn(
+                new PageImpl<>(List.of(
+                        GetUserDetailCase.Response.from(user),
+                        GetUserDetailCase.Response.from(otherUser)
+                ))
+        );
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = getGroupOperator(Group.DEFAULT, otherOperator);
         Question question0 = questionService.create("anyTitle0", "anyDescription0", groupOperator);
         Question question1 = questionService.create("anyTitle1", "anyDescription1", groupOperator);
         questionService.create("anyTitle2", "anyDescription2", groupOperator);
         Question question3 = questionService.create("anyTitle3", "anyDescription3", otherGroupOperator);
+
 
         givenDefault(Group.DEFAULT)
                 .param("sort", "createdAt")
@@ -199,8 +271,9 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_update_question() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String newTitle = "newTitle";
         String newDescription = "newDescription";
@@ -228,8 +301,9 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_update_question_status_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Response response = givenWithAuthorize(user, Group.DEFAULT)
@@ -263,15 +337,16 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_update_question_status_by_group_admin_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
-        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        GroupMember groupAdmin = addGroupAdmin(group, otherUser, groupOperator);
+        String groupId = prepareGroupId();
+        Operator operator = mockGroupCreator(groupId, user);
 
+        User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
+        mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
-        Response response = givenWithAuthorize(otherUser, group.getId())
+        Response response = givenWithAuthorize(otherUser, groupId)
                 .body(new HashMap<String, Object>() {
                     {
                         put("status", Question.Status.CLOSED);
@@ -286,7 +361,7 @@ class QuestionControllerTest extends TestBase {
         Question updatedQuestion = questionRepository.findById(question.getId()).get();
         assertThat(updatedQuestion.getStatus(), is(Question.Status.CLOSED));
 
-        givenWithAuthorize(user, group.getId())
+        givenWithAuthorize(user, groupId)
                 .body(new HashMap<String, Object>() {
                     {
                         put("status", Question.Status.OPENED);
@@ -302,17 +377,17 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_update_question_status_by_group_owner_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
+        String groupId = prepareGroupId();
+        mockGroupCreator(groupId, user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
+        Operator otherOperator = mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
 
-        Response response = givenWithAuthorize(user, group.getId())
+        Response response = givenWithAuthorize(user, groupId)
                 .body(new HashMap<String, Object>() {
                     {
                         put("status", Question.Status.CLOSED);
@@ -327,7 +402,7 @@ class QuestionControllerTest extends TestBase {
         Question updatedQuestion = questionRepository.findById(question.getId()).get();
         assertThat(updatedQuestion.getStatus(), is(Question.Status.CLOSED));
 
-        givenWithAuthorize(user, group.getId())
+        givenWithAuthorize(user, groupId)
                 .body(new HashMap<String, Object>() {
                     {
                         put("status", Question.Status.OPENED);
@@ -343,11 +418,13 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_question_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
+        Operator otherOperator = mockDefaultGroupMember(otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = getGroupOperator(Group.DEFAULT, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String questionId = question.getId();
@@ -369,13 +446,14 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_question_by_group_admin_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
+        String groupId = prepareGroupId();
+        Operator operator = mockGroupCreator(groupId, user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminOperator = groupService.getGroupOperator(group.getId(), otherOperator);
+        Operator otherOperator = mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
+        GroupOperator adminOperator = getGroupOperator(groupId, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String questionId = question.getId();
@@ -383,7 +461,7 @@ class QuestionControllerTest extends TestBase {
         questionService.addAnswer(questionId, "content0", groupOperator);
         questionService.addAnswer(questionId, "content1", adminOperator);
 
-        Response response = givenWithAuthorize(otherUser, group.getId())
+        Response response = givenWithAuthorize(otherUser, groupId)
                 .when()
                 .delete("/questions/" + questionId);
         response.then().statusCode(200);
@@ -397,13 +475,14 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_question_by_group_owner_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
+        String groupId = prepareGroupId();
+        Operator operator = mockGroupCreator(groupId, user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        GroupMember groupAdmin = addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getGroupOperator(groupAdmin.getGroupId(), otherOperator);
+        Operator otherOperator = mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(groupId, operator);
+        GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
         String questionId = question.getId();
@@ -411,7 +490,7 @@ class QuestionControllerTest extends TestBase {
         questionService.addAnswer(questionId, "content0", groupOperator);
         questionService.addAnswer(questionId, "content1", adminGroupOperator);
 
-        Response response = givenWithAuthorize(user, group.getId())
+        Response response = givenWithAuthorize(user, groupId)
                 .when()
                 .delete("/questions/" + questionId);
         response.then().statusCode(200);
@@ -425,8 +504,9 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_create_answer() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         String content = "content";
 
@@ -455,20 +535,31 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_get_all_answers_by_page() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        GroupOperator otherGroupOperator = groupService.getGroupOperator(Group.DEFAULT, otherOperator);
+        Operator otherOperator = mockDefaultGroupMember(otherUser);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
+        GroupOperator otherGroupOperator = getGroupOperator(Group.DEFAULT, otherOperator);
+
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
 
         Answer answer0 = questionService.addAnswer(question.getId(), "content0", groupOperator);
         Answer answer1 = questionService.addAnswer(question.getId(), "content1", otherGroupOperator);
 
+        Mockito.when(userClient.getAllUsers(Set.of("anyName-id", "otherUserName-id"))).thenReturn(
+                new PageImpl<>(List.of(
+                        GetUserDetailCase.Response.from(user),
+                        GetUserDetailCase.Response.from(otherUser)
+                ))
+        );
+
         Response response = givenDefault()
                 .param("sort", "createdAt")
                 .when()
                 .get(MAIN_PATH + "/" + question.getId() + "/answers");
+
 
         response.then().statusCode(200)
                 .body("content.size", is(2))
@@ -480,8 +571,9 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_update_answer() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", groupOperator);
         String newContent = "newContent";
@@ -506,8 +598,9 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_answer_by_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        GroupOperator groupOperator = groupService.getGroupOperator(Group.DEFAULT, operator);
+        Operator operator = mockDefaultGroupMember(user);
+
+        GroupOperator groupOperator = getGroupOperator(Group.DEFAULT, operator);
         Question question = questionService.create("anyTitle", "anyDescription", groupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", groupOperator);
 
@@ -522,13 +615,13 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_answer_by_group_admin_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
+        String groupId = prepareGroupId();
+        mockGroupCreator(groupId, user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
+        Operator otherOperator = mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
 
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
@@ -545,18 +638,18 @@ class QuestionControllerTest extends TestBase {
     @Test
     void should_delete_answer_by_group_owner_and_not_creator() {
         User user = this.prepareUser("anyName", "anyEmail");
-        Operator operator = getOperator(user);
-        Group group = groupService.create("anyGroupName", "", operator);
-        GroupOperator groupOperator = groupService.getGroupOperator(group.getId(), operator);
+        String groupId = prepareGroupId();
+        mockGroupCreator(groupId, user);
+
         User otherUser = this.prepareUser("otherUserName", "otherUserEmail");
-        Operator otherOperator = getOperator(otherUser);
-        addGroupAdmin(group, otherUser, groupOperator);
-        GroupOperator adminGroupOperator = groupService.getGroupOperator(group.getId(), otherOperator);
+        Operator otherOperator = mockGroupAdmin(groupId, otherUser);
+
+        GroupOperator adminGroupOperator = getGroupOperator(groupId, otherOperator);
 
         Question question = questionService.create("anyTitle", "anyDescription", adminGroupOperator);
         Answer answer = questionService.addAnswer(question.getId(), "content", adminGroupOperator);
 
-        Response response = givenWithAuthorize(user, group.getId())
+        Response response = givenWithAuthorize(user, groupId)
                 .when()
                 .delete("/questions/" + question.getId() + "/answers/" + answer.getId());
         response.then().statusCode(200);
@@ -564,15 +657,4 @@ class QuestionControllerTest extends TestBase {
         assertThat(answerRepository.findById(answer.getId()).isPresent(), is(false));
     }
 
-
-    private GroupMember addGroupAdmin(Group group, User user, GroupOperator operator) {
-        GroupMember otherMember = groupService.addNormalMember(group.getId(), getOperator(user));
-        return groupService.changeMemberRole(group.getId(), otherMember.getUserId(),
-                GroupMember.Role.ADMIN, getOperator(User.builder().id(operator.getUserId()).build())
-        );
-    }
-
-    private Operator getOperator(User user) {
-        return Operator.builder().userId(user.getId()).role(user.getRole()).build();
-    }
 }

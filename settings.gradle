@@ -5,4 +5,5 @@ include 'legacy:bootstrap'
 include 'legacy:admin'
 include 'legacy:business'
 include 'microservices:question'
+include 'shared:application'
 

@@ -7,9 +7,14 @@ import com.example.business.usecase.user.ResetPasswordCase;
 import com.example.business.usecase.user.UpdateUserCase;
 import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.user.model.Operator;
+import com.example.domain.user.model.User;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.function.Function;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -46,4 +51,10 @@ public class UserController {
         Operator operator = AuthorizeContextHolder.getOperator();
         applicationService.resetPassword(request, operator);
     }
+
+    @GetMapping("")
+    public Page<GetUserDetailCase.Response> findAllByIdIn(@RequestParam String[] ids) {
+        return applicationService.findAll(ids).map(GetUserDetailCase.Response::from);
+    }
+
 }
