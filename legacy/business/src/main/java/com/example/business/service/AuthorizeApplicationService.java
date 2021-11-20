@@ -1,5 +1,6 @@
 package com.example.business.service;
 
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.auth.model.Authorize;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.User;
@@ -31,12 +32,12 @@ public class AuthorizeApplicationService {
     }
 
     public void logout() {
-        Authorize authorize = authorizeService.getCurrent();
+        Authorize authorize = AuthorizeContextHolder.getContext();
         authorizeService.delete(authorize.getId());
     }
 
     public GetUserProfileCase.Response getProfile() {
-        Authorize authorize = authorizeService.getCurrent();
+        Authorize authorize = AuthorizeContextHolder.getContext();
         return GetUserProfileCase.Response.from(authorize);
     }
 }

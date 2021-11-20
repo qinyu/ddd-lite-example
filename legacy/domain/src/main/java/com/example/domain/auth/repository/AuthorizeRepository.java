@@ -2,7 +2,6 @@ package com.example.domain.auth.repository;
 
 import com.example.domain.auth.model.Authorize;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,8 +12,11 @@ import java.util.concurrent.TimeUnit;
 @Repository
 public class AuthorizeRepository {
     public static final long DEFAULT_EXPIRE = 24 * 60 * 60;
-    @Autowired
-    private RedisTemplate<String, Authorize> redisTemplate;
+    private final RedisTemplate<String, Authorize> redisTemplate;
+
+    public AuthorizeRepository(RedisTemplate<String, Authorize> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public Authorize create(Authorize authorize) {
         authorize.setId(UUID.randomUUID().toString());

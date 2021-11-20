@@ -5,6 +5,7 @@ import com.example.admin.usecase.user.CreateUserCase;
 import com.example.admin.usecase.user.GetUserDetailCase;
 import com.example.admin.usecase.user.GetUsersCase;
 import com.example.admin.usecase.user.UpdateUserStatusCase;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.Operator;
 import org.springframework.data.domain.Page;
@@ -28,12 +29,9 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class UserManagementController {
 
     private final UserManagementApplicationService userManagementApplicationService;
-    private final AuthorizeService authorizeService;
 
-    public UserManagementController(UserManagementApplicationService userManagementApplicationService,
-                                    AuthorizeService authorizeService) {
+    public UserManagementController(UserManagementApplicationService userManagementApplicationService) {
         this.userManagementApplicationService = userManagementApplicationService;
-        this.authorizeService = authorizeService;
     }
 
     @GetMapping
@@ -50,14 +48,14 @@ public class UserManagementController {
     @PostMapping()
     @ResponseStatus(CREATED)
     public CreateUserCase.Response createUser(@RequestBody @Valid CreateUserCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         return userManagementApplicationService.createUser(request, operator);
     }
 
     @PutMapping("/{id}/status")
     public UpdateUserStatusCase.Response updateUserStatus(@PathVariable("id") String id,
                                                           @RequestBody @Valid UpdateUserStatusCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         return userManagementApplicationService.updateUserStatus(id, request, operator);
     }
 }

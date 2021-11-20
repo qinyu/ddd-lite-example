@@ -1,6 +1,8 @@
 package com.example.domain.auth;
 
+import com.example.domain.auth.exception.AuthorizeException;
 import com.example.domain.auth.model.Authorize;
+import com.example.domain.user.model.Operator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -15,4 +17,12 @@ public class AuthorizeContextHolder {
         contextHolder.set(context);
     }
 
+    public static Operator getOperator() {
+        Authorize authorize = getContext();
+        if (authorize == null || authorize.getUserId() == null) {
+            throw AuthorizeException.Unauthorized();
+        }
+
+        return Operator.builder().userId(authorize.getUserId()).role(authorize.getRole()).build();
+    }
 }

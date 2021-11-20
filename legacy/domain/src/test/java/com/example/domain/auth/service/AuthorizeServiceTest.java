@@ -53,22 +53,10 @@ class AuthorizeServiceTest {
                 Authorize.builder().id("test-authorize").userId("test-user-id").build()
         );
         //when
-        Authorize current = authorizeService.getCurrent();
+        Authorize current = AuthorizeContextHolder.getContext();
         //then
         assertEquals("test-authorize", current.getId());
         AuthorizeContextHolder.setContext(null);
-    }
-
-    @Test
-    void should_fetch_authorize_failed_when_authorize_is_not_exist() {
-        //when
-        BaseException exception = assertThrows(AuthorizeException.class, () -> {
-            //when
-            authorizeService.getOperator();
-        });
-
-        assertEquals("unauthorized", exception.getMessage());
-        assertEquals(BaseException.Type.UNAUTHORIZED, exception.getType());
     }
 
 }

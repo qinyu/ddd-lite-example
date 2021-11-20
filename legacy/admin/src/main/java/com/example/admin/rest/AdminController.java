@@ -2,7 +2,7 @@ package com.example.admin.rest;
 
 import com.example.admin.service.AdminApplicationService;
 import com.example.admin.usecase.authorize.ResetPasswordCase;
-import com.example.domain.auth.service.AuthorizeService;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.user.model.Operator;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,17 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final AdminApplicationService adminApplicationService;
-    private final AuthorizeService authorizeService;
 
-    public AdminController(AdminApplicationService adminApplicationService, AuthorizeService authorizeService) {
+    public AdminController(AdminApplicationService adminApplicationService) {
         this.adminApplicationService = adminApplicationService;
-        this.authorizeService = authorizeService;
     }
 
 
     @PutMapping("/password")
     public void resetPassword(@RequestBody ResetPasswordCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         adminApplicationService.resetPassword(request, operator);
     }
 }

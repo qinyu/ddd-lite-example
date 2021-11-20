@@ -2,13 +2,9 @@ package com.example.business.rest;
 
 import com.example.business.service.GroupRequestApplicationService;
 import com.example.business.usecase.group.CreateGroupRequestCase;
-import com.example.domain.auth.service.AuthorizeService;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.user.model.Operator;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -20,17 +16,14 @@ public class GroupRequestController {
 
     private final GroupRequestApplicationService applicationService;
 
-    private final AuthorizeService authorizeService;
-
-    public GroupRequestController(GroupRequestApplicationService applicationService, AuthorizeService authorizeService) {
+    public GroupRequestController(GroupRequestApplicationService applicationService) {
         this.applicationService = applicationService;
-        this.authorizeService = authorizeService;
     }
 
     @PostMapping
     @ResponseStatus(CREATED)
     public CreateGroupRequestCase.Response createGroupRequest(@RequestBody @Valid CreateGroupRequestCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         return applicationService.createGroup(request, operator);
     }
 }

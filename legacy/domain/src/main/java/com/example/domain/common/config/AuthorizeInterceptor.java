@@ -20,8 +20,11 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Slf4j
 @Component
 public class AuthorizeInterceptor implements HandlerInterceptor {
-    @Autowired
-    private AuthorizeRepository authorizeRepository;
+    private final AuthorizeRepository authorizeRepository;
+
+    public AuthorizeInterceptor(AuthorizeRepository authorizeRepository) {
+        this.authorizeRepository = authorizeRepository;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

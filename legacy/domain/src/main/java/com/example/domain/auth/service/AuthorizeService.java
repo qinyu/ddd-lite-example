@@ -1,10 +1,8 @@
 package com.example.domain.auth.service;
 
-import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.auth.exception.AuthorizeException;
 import com.example.domain.auth.model.Authorize;
 import com.example.domain.auth.repository.AuthorizeRepository;
-import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,19 +34,6 @@ public class AuthorizeService {
                 .role(user.getRole())
                 .build();
         return authorizeRepository.create(authorize);
-    }
-
-    public Authorize getCurrent() {
-        return AuthorizeContextHolder.getContext();
-    }
-
-    public Operator getOperator() {
-        Authorize authorize = getCurrent();
-        if (authorize == null || authorize.getUserId() == null) {
-            throw AuthorizeException.Unauthorized();
-        }
-
-        return Operator.builder().userId(authorize.getUserId()).role(authorize.getRole()).build();
     }
 
     public void delete(String id) {

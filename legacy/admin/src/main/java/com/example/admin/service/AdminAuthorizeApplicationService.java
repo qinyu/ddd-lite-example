@@ -1,6 +1,7 @@
 package com.example.admin.service;
 
 import com.example.admin.usecase.authorize.LoginCase;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.auth.model.Authorize;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.User;
@@ -30,7 +31,7 @@ public class AdminAuthorizeApplicationService {
     }
 
     public void logout() {
-        Authorize authorize = authorizeService.getCurrent();
+        Authorize authorize = AuthorizeContextHolder.getContext();
         authorizeService.delete(authorize.getId());
     }
 }

@@ -5,15 +5,9 @@ import com.example.business.usecase.user.GetUserDetailCase;
 import com.example.business.usecase.user.RegisterCase;
 import com.example.business.usecase.user.ResetPasswordCase;
 import com.example.business.usecase.user.UpdateUserCase;
-import com.example.domain.auth.service.AuthorizeService;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.user.model.Operator;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -25,11 +19,8 @@ public class UserController {
 
     private final UserApplicationService applicationService;
 
-    private final AuthorizeService authorizeService;
-
-    public UserController(UserApplicationService applicationService, AuthorizeService authorizeService) {
+    public UserController(UserApplicationService applicationService) {
         this.applicationService = applicationService;
-        this.authorizeService = authorizeService;
     }
 
     @PostMapping
@@ -40,19 +31,19 @@ public class UserController {
 
     @GetMapping("/me")
     public GetUserDetailCase.Response getDetail() {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         return applicationService.getDetail(operator);
     }
 
     @PutMapping("/me")
     public UpdateUserCase.Response update(@RequestBody @Valid UpdateUserCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         return applicationService.update(request, operator);
     }
 
     @PutMapping("/me/password")
     public void resetPassword(@RequestBody @Valid ResetPasswordCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
         applicationService.resetPassword(request, operator);
     }
 }
