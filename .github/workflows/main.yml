@@ -22,7 +22,8 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
+    
+      # Redis is requiered by controller test
       - uses: shogo82148/actions-setup-redis@v1
         with:
           redis-version: 'latest'
@@ -32,10 +33,11 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Gradle Check
-        run: ./gradlew check -i
+        run: ./gradlew check
 
+      # Publish test results
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          files: $GITHUB_WORKSPACE/**/build/test-results/**/*.xml
+          files: ./**/build/test-results/**/*.xml
