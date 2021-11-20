@@ -1,6 +1,9 @@
 rootProject.name = 'ddd-lite-example'
+include 'archtest'
+include 'shared:domain'
 include 'legacy:bootstrap'
 include 'legacy:admin'
-include 'legacy:domain'
 include 'legacy:business'
-include 'archtest'
+include 'microservices:question'
+include 'shared:application'
+

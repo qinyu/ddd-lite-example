@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
 
@@ -99,5 +100,41 @@ class UserControllerTest extends TestBase {
                 .when()
                 .post("/authorizes")
                 .then().statusCode(201);
+    }
+
+    @Test
+    void should_find_users_by_id() {
+        User user = this.prepareUser("anyName", "anyEmail");
+        User otherUser = this.prepareUser("anyOtherName", "anyOtherEmail");
+
+        given()
+                .contentType("application/json")
+                .when()
+                .get("/users?ids=" + user.getId() + "," + otherUser.getId())
+                .then()
+                .statusCode(200)
+                .body("content.size", is(2))
+                .body("content.id", hasItems(user.getId(), otherUser.getId()))
+                .body("content.name", hasItems(user.getName(), otherUser.getName()))
+                .body("content.email", hasItems(user.getEmail(), otherUser.getEmail()));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .get("/users?ids=" + user.getId())
+                .then()
+                .statusCode(200)
+                .body("content.size", is(1))
+                .body("content.id", hasItems(user.getId()))
+                .body("content.name", hasItems(user.getName()))
+                .body("content.email", hasItems(user.getEmail()));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .get("/users?ids=DOES-NOT-EXIST")
+                .then()
+                .statusCode(200)
+                .body("content.size", is(0));
     }
 }

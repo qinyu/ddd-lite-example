@@ -3,16 +3,11 @@ package com.example.admin.rest;
 import com.example.admin.service.GroupManagementApplicationService;
 import com.example.admin.usecase.group.CreateGroupCase;
 import com.example.admin.usecase.group.GetGroupsCase;
-import com.example.domain.auth.service.AuthorizeService;
+import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.user.model.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -21,12 +16,9 @@ import javax.validation.Valid;
 public class GroupManagementController {
 
     private final GroupManagementApplicationService groupManagementApplicationService;
-    private final AuthorizeService authorizeService;
 
-    public GroupManagementController(GroupManagementApplicationService groupManagementApplicationService,
-                                     AuthorizeService authorizeService) {
+    public GroupManagementController(GroupManagementApplicationService groupManagementApplicationService) {
         this.groupManagementApplicationService = groupManagementApplicationService;
-        this.authorizeService = authorizeService;
     }
 
     @GetMapping
@@ -37,7 +29,7 @@ public class GroupManagementController {
 
     @PostMapping
     public CreateGroupCase.Response createGroup(@RequestBody @Valid CreateGroupCase.Request request) {
-        Operator operator = authorizeService.getOperator();
+        Operator operator = AuthorizeContextHolder.getOperator();
 
         return groupManagementApplicationService.creteGroup(request, operator);
     }

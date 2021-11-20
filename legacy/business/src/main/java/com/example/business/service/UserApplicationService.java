@@ -7,7 +7,11 @@ import com.example.business.usecase.user.GetUserDetailCase;
 import com.example.business.usecase.user.RegisterCase;
 import com.example.business.usecase.user.ResetPasswordCase;
 import com.example.business.usecase.user.UpdateUserCase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 @Service
 public class UserApplicationService {
@@ -37,5 +41,10 @@ public class UserApplicationService {
 
     public void resetPassword(ResetPasswordCase.Request request, Operator operator) {
         userService.resetPassword(operator.getUserId(), request.getPassword(), operator);
+    }
+
+    public Page<User> findAll(String[] ids) {
+        return userService.findAll((root, query, criteriaBuilder) ->
+                criteriaBuilder.in(root.get(User.Fields.id)).value(Set.of(ids)), Pageable.unpaged());
     }
 }

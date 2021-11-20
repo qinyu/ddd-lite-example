@@ -7,21 +7,34 @@ AddElementTag("covered", $borderColor="#d73027")
 Container_Ext(DidaBusinessWeb, "Business WebApp", "Vue", "嘀嗒社区的前端应用：用户在这里提问或回答")
 Container_Ext(DidaAdminWeb, "Admin WebApp", "Vue", "嘀嗒社区的管理应用：管理员在这里管理圈子、问答、用户")
 
-Container_Boundary(DidaApi, "Dida Service") {
-    Component(SpringBootApp, "bootstrap", "SpringBoot", "SpringBoot应用入口，基础设施", $tags="covered")
+Container_Boundary(DidaService, "Dida Service") {
+    Component(SpringBootApp, "legacy:bootstrap", "SpringBoot", "SpringBoot应用入口，基础设施", $tags="covered")
 
-    Component(AdminApi, "business", "MVC REST Controller, DTO, Application Service", "提供给管理应用的API，接入层和应用层", $tags="covered")
-    Component(BusinessApi, "admin", "MVC REST Controller, DTO, Application Service", "提供给前端应用的API，接入层和应用层", $tags="covered")
+    Component(AdminApi, "legacy:admin", "MVC REST Controller, DTO, Application Service", "提供给管理应用的API，接入层和应用层", $tags="covered")
+    Component(BusinessApi, "legacy:business", "MVC REST Controller, DTO, Application Service", "提供给前端应用的API，接入层和应用层", $tags="covered")
 
-    Component(DomainModel, "domain", "Aggregate, Entity，Value Object, Domain Service, Repository(JPA), etc", "领域模型，领域层和基础设施层", $tags="covered")
+}
+Component(DomainModel, "shared:domain", "Aggregate, Entity，Value Object, Domain Service, Repository(JPA), etc", "领域模型，领域层和基础设施层", $tags="covered")
+Component(ApplicationCommon, "shared:application", "Usecases, DTO", "应用层共享的用例和DTO", $tags="covered")
+
+Container_Boundary(QuestionService, "Question Service") {
+    Component(QuestionApi, "microservices:question", "MVC REST Controller, Application Service, Infrastructure", "提供给前端应用的问答API，接入层、应用层、基础设施层", $tags="covered")
 }
 
 ContainerDb_Ext(DidaDb, "Dida DB", "MySql", "嘀嗒社区数据库：包括用户、问答、圈子")
 Rel(DidaBusinessWeb, SpringBootApp, "请求", "REST")
+Rel(DidaBusinessWeb, QuestionApi, "请求", "REST")
 Rel(DidaAdminWeb, SpringBootApp, "请求", "REST")
 
 Rel(BusinessApi, DomainModel, "依赖")
 Rel(AdminApi, DomainModel, "依赖")
+Rel(ApplicationCommon, DomainModel, "依赖")
+Rel(QuestionApi, DomainModel, "依赖")
+
+Rel(BusinessApi, ApplicationCommon, "依赖")
+Rel(AdminApi, ApplicationCommon, "依赖")
+Rel(QuestionApi, ApplicationCommon, "依赖")
+Rel(QuestionApi, BusinessApi, "请求", "HTTP")
 
 Rel(SpringBootApp, BusinessApi, "依赖")
 Rel(SpringBootApp, AdminApi, "依赖")
