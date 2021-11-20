@@ -4,7 +4,7 @@ import com.example.question.service.QuestionApplicationService;
 import com.example.domain.auth.AuthorizeContextHolder;
 import com.example.domain.group.GroupContextHolder;
 import com.example.domain.user.model.Operator;
-import com.example.question.usecase.*;
+import com.example.business.usecase.question.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

@@ -7,7 +7,7 @@ import com.example.domain.question.model.Question;
 import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
-import com.example.question.usecase.*;
+import com.example.business.usecase.question.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

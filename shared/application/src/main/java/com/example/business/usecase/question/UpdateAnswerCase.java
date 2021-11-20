@@ -1,4 +1,4 @@
-package com.example.question.usecase;
+package com.example.business.usecase.question;
 
 import com.example.domain.question.model.Answer;
 import lombok.AllArgsConstructor;
@@ -9,8 +9,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 
-
-public class CreateAnswerCase {
+public class UpdateAnswerCase {
     @Getter
     @Setter
     @NoArgsConstructor

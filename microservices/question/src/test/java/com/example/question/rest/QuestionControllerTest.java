@@ -1,6 +1,5 @@
 package com.example.question.rest;
 
-import com.example.TestBase;
 import com.example.business.usecase.group.GetGroupOperatorCase;
 import com.example.business.usecase.user.GetUserDetailCase;
 import com.example.domain.group.model.Group;
@@ -13,25 +12,30 @@ import com.example.domain.question.repository.QuestionRepository;
 import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
+import com.example.QuestionTestBase;
 import com.example.question.service.GroupClient;
 import com.example.question.service.UserClient;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.Is.isA;
 
-class QuestionControllerTest extends TestBase {
+class QuestionControllerTest extends QuestionTestBase {
     public static final String MAIN_PATH = "/questions";
 
     @Autowired
