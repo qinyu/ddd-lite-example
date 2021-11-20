@@ -33,7 +33,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Gradle Check
-        run: ./gradlew check
+        run: ./gradlew clean check build
 
       # Publish test results
       - name: Publish Unit Test Results
