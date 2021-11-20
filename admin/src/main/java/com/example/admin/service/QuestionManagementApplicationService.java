@@ -2,8 +2,8 @@ package com.example.admin.service;
 
 import com.example.admin.common.GroupCriteria;
 import com.example.admin.common.UserCriteria;
-import com.example.admin.usecases.question.GetQuestionsCase;
-import com.example.admin.usecases.question.UpdateQuestionStatusCase;
+import com.example.admin.usecase.question.GetQuestionsCase;
+import com.example.admin.usecase.question.UpdateQuestionStatusCase;
 import com.example.domain.group.model.Group;
 import com.example.domain.group.model.GroupOperator;
 import com.example.domain.group.service.GroupService;
@@ -12,7 +12,6 @@ import com.example.domain.question.service.QuestionService;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.domain.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

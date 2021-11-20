@@ -1,4 +1,4 @@
-package com.example.admin.usecases.authorize;
+package com.example.admin.usecase.authorize;
 
 import com.example.domain.auth.model.Authorize;
 import lombok.AllArgsConstructor;

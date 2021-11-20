@@ -1,13 +1,12 @@
 package com.example.admin.service;
 
-import com.example.admin.usecases.group.CreateGroupCase;
-import com.example.admin.usecases.group.GetGroupsCase;
+import com.example.admin.usecase.group.CreateGroupCase;
+import com.example.admin.usecase.group.GetGroupsCase;
 import com.example.domain.group.model.Group;
 import com.example.domain.group.model.GroupRequest;
 import com.example.domain.group.service.GroupRequestService;
 import com.example.domain.group.service.GroupService;
 import com.example.domain.user.model.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

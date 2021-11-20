@@ -1,8 +1,8 @@
 package com.example.admin.rest;
 
 import com.example.admin.service.GroupManagementApplicationService;
-import com.example.admin.usecases.group.CreateGroupCase;
-import com.example.admin.usecases.group.GetGroupsCase;
+import com.example.admin.usecase.group.CreateGroupCase;
+import com.example.admin.usecase.group.GetGroupsCase;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.Operator;
 import org.springframework.data.domain.Page;

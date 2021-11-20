@@ -1,13 +1,12 @@
 package com.example.admin.service;
 
-import com.example.admin.usecases.user.CreateUserCase;
-import com.example.admin.usecases.user.GetUserDetailCase;
-import com.example.admin.usecases.user.GetUsersCase;
-import com.example.admin.usecases.user.UpdateUserStatusCase;
+import com.example.admin.usecase.user.CreateUserCase;
+import com.example.admin.usecase.user.GetUserDetailCase;
+import com.example.admin.usecase.user.GetUsersCase;
+import com.example.admin.usecase.user.UpdateUserStatusCase;
 import com.example.domain.user.model.Operator;
 import com.example.domain.user.model.User;
 import com.example.domain.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

@@ -1,6 +1,6 @@
 package com.example.admin.service;
 
-import com.example.admin.usecases.authorize.LoginCase;
+import com.example.admin.usecase.authorize.LoginCase;
 import com.example.domain.auth.model.Authorize;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.User;

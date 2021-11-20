@@ -1,10 +1,9 @@
 package com.example.admin.rest;
 
 import com.example.admin.service.AdminApplicationService;
-import com.example.admin.usecases.authorize.ResetPasswordCase;
+import com.example.admin.usecase.authorize.ResetPasswordCase;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.user.model.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

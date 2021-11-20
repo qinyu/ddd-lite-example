@@ -1,6 +1,6 @@
-package com.example.admin.usecases.question;
+package com.example.admin.usecase.question;
 
-import com.example.admin.usecases.common.CreatorResponse;
+import com.example.admin.usecase.common.CreatorResponse;
 import com.example.domain.group.model.Group;
 import com.example.domain.question.model.Question;
 import com.example.domain.user.model.User;

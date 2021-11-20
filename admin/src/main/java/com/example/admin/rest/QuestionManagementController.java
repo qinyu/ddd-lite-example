@@ -1,8 +1,8 @@
 package com.example.admin.rest;
 
 import com.example.admin.service.QuestionManagementApplicationService;
-import com.example.admin.usecases.question.GetQuestionsCase;
-import com.example.admin.usecases.question.UpdateQuestionStatusCase;
+import com.example.admin.usecase.question.GetQuestionsCase;
+import com.example.admin.usecase.question.UpdateQuestionStatusCase;
 import com.example.domain.auth.service.AuthorizeService;
 import com.example.domain.group.GroupContextHolder;
 import com.example.domain.user.model.Operator;

@@ -3,3 +3,5 @@ include 'bootstrap'
 include 'admin'
 include 'domain'
 include 'business'
+include 'archtest'
+
